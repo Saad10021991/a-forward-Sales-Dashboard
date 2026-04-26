@@ -1,0 +1,1404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pro Dispatch — Agent Portal</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap');
+:root{
+  --bg:#080b14;--surface:#0d1120;--surface2:#121829;--surface3:#182035;--surface4:#1e2840;
+  --border:rgba(255,255,255,0.05);--border2:rgba(255,255,255,0.10);--border3:rgba(255,255,255,0.16);
+  --text:#dde2f0;--text2:#9aa3bf;--muted:#5a6380;
+  --accent:#00e5a0;--accent2:#00c488;--accent-dim:rgba(0,229,160,0.08);--accent-glow:rgba(0,229,160,0.20);
+  --danger:#ff4f6a;--danger-dim:rgba(255,79,106,0.08);--danger-glow:rgba(255,79,106,0.22);
+  --amber:#ffb020;--amber-dim:rgba(255,176,32,0.08);--amber-glow:rgba(255,176,32,0.20);
+  --blue:#4f8fff;--blue-dim:rgba(79,143,255,0.08);--blue-glow:rgba(79,143,255,0.20);
+  --purple:#a855f7;--purple-dim:rgba(168,85,247,0.08);
+  --r:8px;--rl:12px;--rxl:16px;
+  --sh:0 4px 32px rgba(0,0,0,0.5);--sh-lg:0 12px 60px rgba(0,0,0,0.7);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.6;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 70% 50% at 5% 15%,rgba(0,229,160,.05) 0%,transparent 60%),radial-gradient(ellipse 50% 40% at 95% 85%,rgba(79,143,255,.04) 0%,transparent 55%);pointer-events:none;z-index:0;}
+
+/* ══ VIEWS ══ */
+.view{display:none;position:relative;z-index:1;}.view.active{display:block;}
+
+/* ══ LOGIN ══ */
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem;}
+.login-card{background:var(--surface);border:1px solid var(--border2);border-radius:var(--rxl);padding:2.75rem;width:100%;max-width:420px;box-shadow:var(--sh-lg);}
+.llogo{display:flex;align-items:center;gap:13px;margin-bottom:2.25rem;}
+.llogo-icon{width:46px;height:46px;background:var(--accent-dim);border:1px solid var(--accent-glow);border-radius:13px;display:flex;align-items:center;justify-content:center;}
+.llogo-icon svg{width:24px;height:24px;}
+.llogo-text{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;letter-spacing:-.03em;}
+.llogo-sub{font-size:11px;color:var(--muted);margin-top:1px;font-weight:500;}
+.login-h{font-family:'Syne',sans-serif;font-size:26px;font-weight:700;margin-bottom:6px;letter-spacing:-.03em;}
+.login-sub{font-size:13px;color:var(--muted);margin-bottom:2rem;}
+
+/* ══ FORM ELEMENTS ══ */
+.field{margin-bottom:1rem;}
+.field label{display:block;font-size:10px;font-weight:700;color:var(--muted);margin-bottom:6px;letter-spacing:.09em;text-transform:uppercase;}
+.finput{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--r);padding:10px 14px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;outline:none;transition:border-color .2s,box-shadow .2s;}
+.finput:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-dim);}
+.finput option{background:var(--surface);}
+textarea.finput{resize:vertical;min-height:68px;}
+
+/* ══ BUTTONS ══ */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:9px 16px;border-radius:var(--r);border:1px solid var(--border2);background:transparent;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all .18s;white-space:nowrap;}
+.btn:hover{background:var(--surface2);border-color:var(--border3);}
+.btn-p{background:var(--accent);border-color:var(--accent);color:#03100a;font-weight:700;font-family:'Syne',sans-serif;}
+.btn-p:hover{background:var(--accent2);border-color:var(--accent2);}
+.btn-d{color:var(--danger);border-color:rgba(255,79,106,.22);}
+.btn-d:hover{background:var(--danger-dim);border-color:var(--danger);}
+.btn-warn{color:var(--amber);border-color:rgba(255,176,32,.22);}
+.btn-warn:hover{background:var(--amber-dim);}
+.btn-blue{color:var(--blue);border-color:rgba(79,143,255,.22);}
+.btn-blue:hover{background:var(--blue-dim);}
+.btn-purple{color:var(--purple);border-color:rgba(168,85,247,.22);}
+.btn-purple:hover{background:var(--purple-dim);}
+.btn-sm{padding:5px 11px;font-size:12px;}
+.btn-xs{padding:3px 8px;font-size:11px;}
+.btn-full{width:100%;}
+
+/* ══ ALERTS ══ */
+.emsg{background:var(--danger-dim);border:1px solid rgba(255,79,106,.22);border-radius:var(--r);padding:10px 14px;color:var(--danger);font-size:13px;margin-bottom:1rem;display:none;}
+.smsg{background:var(--accent-dim);border:1px solid var(--accent-glow);border-radius:var(--r);padding:10px 14px;color:var(--accent);font-size:13px;margin-bottom:1rem;display:none;}
+.wmsg{background:var(--amber-dim);border:1px solid var(--amber-glow);border-radius:var(--r);padding:10px 14px;color:var(--amber);font-size:13px;margin-bottom:1rem;display:none;}
+
+/* ══ LAYOUT ══ */
+.app{display:flex;min-height:100vh;}
+.sidebar{width:245px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;height:100vh;z-index:100;overflow-y:auto;}
+.sb-logo{padding:1.25rem 1rem 1rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:11px;}
+.sb-logo-icon{width:36px;height:36px;background:var(--accent-dim);border:1px solid var(--accent-glow);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.sb-logo-icon svg{width:18px;height:18px;}
+.sb-logo-text{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;letter-spacing:-.02em;}
+.sb-logo-ver{font-size:10px;color:var(--muted);margin-top:1px;}
+
+/* ══ CLOCKS ══ */
+.sb-clocks{padding:.75rem .875rem;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:7px;}
+.clock-box{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:8px 11px;}
+.clock-lbl{font-size:9px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-bottom:3px;display:flex;align-items:center;gap:5px;}
+.clk-dot{width:5px;height:5px;border-radius:50%;animation:blink 2s infinite;}
+.clk-dot.green{background:var(--accent);box-shadow:0 0 5px var(--accent);}
+.clk-dot.blue{background:var(--blue);box-shadow:0 0 5px var(--blue);}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.3;}}
+.clock-val{font-family:'DM Mono',monospace;font-size:16px;font-weight:500;color:var(--text);letter-spacing:.01em;}
+.clock-dt{font-size:10px;color:var(--muted);margin-top:1px;}
+.tz-sel{width:100%;background:var(--surface3);border:1px solid var(--border);border-radius:6px;padding:4px 8px;color:var(--text2);font-size:11px;outline:none;font-family:'DM Sans',sans-serif;margin-top:5px;}
+.tz-sel option{background:var(--surface);}
+
+/* ══ NAV ══ */
+.sb-nav{flex:1;padding:.75rem .625rem;}
+.nsec{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:.65rem 10px .25rem;opacity:.5;}
+.nitem{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:var(--r);color:var(--muted);cursor:pointer;transition:all .15s;margin-bottom:2px;font-size:13px;font-weight:500;border:none;background:none;width:100%;text-align:left;font-family:'DM Sans',sans-serif;}
+.nitem svg{width:14px;height:14px;flex-shrink:0;}
+.nitem:hover{background:var(--surface2);color:var(--text);}
+.nitem.active{background:var(--accent-dim);color:var(--accent);}
+.nbadge{margin-left:auto;background:var(--danger);color:#fff;font-size:9px;font-weight:700;border-radius:20px;padding:1px 6px;min-width:16px;text-align:center;}
+
+/* ══ SIDEBAR USER ══ */
+.sb-user{padding:.875rem 1rem;border-top:1px solid var(--border);display:flex;align-items:center;gap:9px;}
+.uavatar{width:34px;height:34px;border-radius:50%;background:var(--accent-dim);border:1px solid var(--accent-glow);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--accent);flex-shrink:0;font-family:'Syne',sans-serif;}
+.uinfo{flex:1;min-width:0;}
+.uname{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.urole{font-size:11px;color:var(--muted);}
+.logout-btn{background:none;border:none;color:var(--muted);cursor:pointer;padding:5px;border-radius:6px;transition:color .15s;}
+.logout-btn:hover{color:var(--danger);}
+.logout-btn svg{width:15px;height:15px;display:block;}
+
+/* ══ MAIN ══ */
+.main{margin-left:245px;flex:1;min-height:100vh;}
+.page{display:none;padding:2rem;max-width:950px;}
+.page.active{display:block;}
+.ph{margin-bottom:1.75rem;}
+.ph h1{font-family:'Syne',sans-serif;font-size:24px;font-weight:700;margin-bottom:5px;letter-spacing:-.03em;}
+.ph p{font-size:13px;color:var(--muted);}
+.ph-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;}
+
+/* ══ CARDS ══ */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rxl);padding:1.25rem;margin-bottom:1rem;}
+.ctitle{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin-bottom:1rem;}
+.div{height:1px;background:var(--border);margin:1rem 0;}
+
+/* ══ GRID ══ */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+
+/* ══ COUNTER BANNER (agent form top) ══ */
+.counter-banner{background:linear-gradient(135deg,var(--surface2),var(--surface3));border:1px solid var(--border2);border-radius:var(--rxl);padding:1rem 1.25rem;margin-bottom:1rem;display:flex;align-items:center;gap:0;overflow:hidden;position:relative;}
+.counter-banner::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--blue));}
+.cb-main{flex:1;}
+.cb-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin-bottom:.4rem;}
+.cb-seq{font-family:'Syne',sans-serif;font-size:30px;font-weight:800;color:var(--accent);letter-spacing:-.04em;line-height:1;}
+.cb-seq span{font-size:14px;font-weight:500;color:var(--muted);font-family:'DM Sans',sans-serif;}
+.cb-stats{display:flex;gap:1.25rem;flex-shrink:0;}
+.cb-stat{text-align:center;}
+.cb-stat-val{font-family:'DM Mono',monospace;font-size:20px;font-weight:500;color:var(--text);}
+.cb-stat-lbl{font-size:10px;color:var(--muted);margin-top:1px;}
+.cb-div{width:1px;background:var(--border2);margin:0 .25rem;align-self:stretch;}
+
+/* ══ STAT CARDS ══ */
+.stat-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--rl);padding:1rem 1.1rem;}
+.stat-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:.4rem;}
+.stat-num{font-family:'Syne',sans-serif;font-size:28px;font-weight:700;letter-spacing:-.03em;}
+.stat-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+.c-green{color:var(--accent);}
+.c-red{color:var(--danger);}
+.c-amber{color:var(--amber);}
+.c-blue{color:var(--blue);}
+.c-purple{color:var(--purple);}
+
+/* ══ VEHICLE CARDS ══ */
+.vcard{background:var(--surface2);border:1px solid var(--border2);border-radius:var(--rxl);padding:1.25rem;margin-bottom:1rem;}
+.vhead{display:flex;align-items:center;gap:10px;margin-bottom:1rem;}
+.vbadge{width:32px;height:32px;border-radius:50%;background:var(--accent-dim);border:1px solid var(--accent-glow);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--accent);flex-shrink:0;font-family:'Syne',sans-serif;}
+.vtitle{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;}
+.sgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:7px;margin-bottom:12px;}
+.schip{display:flex;align-items:center;justify-content:space-between;padding:8px 11px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);cursor:pointer;transition:all .15s;user-select:none;}
+.schip:hover{border-color:var(--border2);}
+.schip.on{border-color:var(--accent);background:var(--accent-dim);}
+.sn{font-size:12px;font-weight:500;}
+.sp{font-size:11px;color:var(--muted);}
+.schip.on .sp{color:var(--accent);}
+.vstotal{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1rem 1.1rem;margin-top:.875rem;}
+.strow{display:flex;align-items:center;justify-content:space-between;font-size:13px;color:var(--muted);margin-bottom:7px;}
+.strow:last-child{margin-bottom:0;}
+.stval{font-family:'DM Mono',monospace;font-size:13px;color:var(--text);}
+.stfin{font-size:14px;font-weight:700;color:var(--accent);}
+.stfinval{font-family:'DM Mono',monospace;font-size:15px;font-weight:700;color:var(--accent);}
+.discrow{display:flex;align-items:center;gap:7px;}
+.dinput{width:80px;padding:6px 9px;background:var(--surface2);border:1px solid var(--border2);border-radius:7px;color:var(--text);font-family:'DM Mono',monospace;font-size:13px;outline:none;text-align:right;transition:border-color .2s;}
+.dinput:focus{border-color:var(--accent);}
+.dtype{padding:6px 9px;background:var(--surface2);border:1px solid var(--border2);border-radius:7px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;cursor:pointer;}
+.dtype option{background:var(--surface);}
+.manualrow{display:flex;align-items:center;gap:8px;margin-top:8px;padding-top:8px;border-top:1px dashed var(--border2);}
+.manual-toggle{display:flex;align-items:center;gap:6px;cursor:pointer;font-size:11px;color:var(--muted);user-select:none;}
+.manual-toggle input{accent-color:var(--amber);width:13px;height:13px;}
+.manual-input{width:100px;padding:6px 10px;background:var(--surface2);border:1px solid rgba(255,176,32,.3);border-radius:7px;color:var(--amber);font-family:'DM Mono',monospace;font-size:13px;outline:none;text-align:right;}
+.manual-input:focus{border-color:var(--amber);}
+
+/* ══ GRAND TOTAL BAR ══ */
+.gtbar{background:linear-gradient(135deg,rgba(0,229,160,.10),rgba(0,229,160,.04));border:1px solid var(--accent-glow);border-radius:var(--rxl);padding:1.1rem 1.4rem;display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;}
+.gtlbl{font-size:10px;color:var(--accent);opacity:.7;margin-bottom:3px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;}
+.gtamt{font-family:'Syne',sans-serif;font-size:34px;font-weight:800;color:var(--accent);letter-spacing:-.04em;}
+.gtparts{font-size:11px;color:var(--accent);opacity:.55;margin-top:4px;}
+
+/* ══ WA BOX ══ */
+.wabox{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);white-space:pre-wrap;line-height:1.8;max-height:280px;overflow-y:auto;}
+
+/* ══ TABLES ══ */
+.dtable-wrap{border-radius:var(--rxl);border:1px solid var(--border);overflow:hidden;background:var(--surface);}
+.dtable{width:100%;border-collapse:collapse;}
+.dtable th{text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding:10px 14px;border-bottom:1px solid var(--border);}
+.dtable td{padding:11px 14px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:middle;}
+.dtable tr:last-child td{border-bottom:none;}
+.dtable tr:hover td{background:rgba(255,255,255,.012);}
+
+/* ══ BADGES / PILLS ══ */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:20px;font-size:10px;font-weight:700;}
+.b-admin{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(255,176,32,.22);}
+.b-agent{background:var(--accent-dim);color:var(--accent);border:1px solid rgba(0,229,160,.2);}
+.b-blocked{background:var(--danger-dim);color:var(--danger);border:1px solid rgba(255,79,106,.22);}
+.b-disabled{background:rgba(90,99,128,.1);color:var(--muted);border:1px solid rgba(90,99,128,.2);}
+.tag{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:500;background:var(--surface3);color:var(--muted);border:1px solid var(--border);margin:2px;font-family:'DM Mono',monospace;}
+
+/* ══ MONITOR / AGENT ROWS ══ */
+.agent-row{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:1rem 1.25rem;margin-bottom:.625rem;display:flex;align-items:center;gap:12px;transition:border-color .2s;}
+.agent-row:hover{border-color:var(--border2);}
+.agent-row.r-blocked{border-color:rgba(255,79,106,.18);background:rgba(255,79,106,.02);}
+.agent-row.r-online{border-color:rgba(0,229,160,.18);}
+.ar-av{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;flex-shrink:0;}
+.ar-av.av-on{background:var(--accent-dim);border:2px solid var(--accent-glow);color:var(--accent);}
+.ar-av.av-off{background:var(--surface3);border:2px solid var(--border2);color:var(--muted);}
+.ar-av.av-bl{background:var(--danger-dim);border:2px solid var(--danger-glow);color:var(--danger);}
+.ar-info{flex:1;min-width:0;}
+.ar-name{font-size:14px;font-weight:600;font-family:'Syne',sans-serif;}
+.ar-meta{font-size:11px;color:var(--muted);margin-top:3px;display:flex;flex-wrap:wrap;gap:4px;align-items:center;}
+.ar-times{display:flex;gap:16px;flex-shrink:0;}
+.ar-ti{text-align:right;}
+.ar-ti-lbl{font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.07em;}
+.ar-ti-val{font-family:'DM Mono',monospace;font-size:12px;color:var(--text2);margin-top:1px;}
+.ar-actions{display:flex;gap:5px;flex-shrink:0;flex-wrap:wrap;}
+
+/* ══ LIVE PREVIEW PANE ══ */
+.preview-pane{background:var(--surface2);border:1px solid rgba(168,85,247,.3);border-radius:var(--rl);padding:1rem 1.25rem;margin-top:.625rem;}
+.preview-header{display:flex;align-items:center;gap:8px;margin-bottom:.75rem;}
+.live-dot{width:8px;height:8px;border-radius:50%;background:var(--danger);box-shadow:0 0 8px var(--danger);animation:blink .8s infinite;}
+.preview-lbl{font-size:11px;font-weight:700;color:var(--purple);text-transform:uppercase;letter-spacing:.08em;}
+.preview-age{font-size:11px;color:var(--muted);margin-left:auto;}
+.preview-wa{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:11px 13px;font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);white-space:pre-wrap;line-height:1.75;max-height:220px;overflow-y:auto;}
+.preview-fields{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:.75rem;}
+.pf{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:7px 10px;}
+.pf-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:2px;}
+.pf-val{font-size:12px;color:var(--text);}
+
+/* ══ AGENT COUNTER CARDS ══ */
+.counter-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rxl);padding:1.25rem;margin-bottom:.75rem;position:relative;overflow:hidden;}
+.counter-card::before{content:'';position:absolute;top:0;left:0;width:100%;height:3px;background:linear-gradient(90deg,var(--accent),var(--blue));}
+.cc-head{display:flex;align-items:center;gap:10px;margin-bottom:1rem;}
+.cc-av{width:38px;height:38px;border-radius:50%;background:var(--accent-dim);border:1px solid var(--accent-glow);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--accent);flex-shrink:0;}
+.cc-info{flex:1;}
+.cc-name{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;}
+.cc-id{font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;}
+.cc-rank{font-family:'Syne',sans-serif;font-size:32px;font-weight:800;color:var(--accent);letter-spacing:-.04em;line-height:1;margin-right:1rem;}
+.cc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:.875rem;}
+.cc-cell{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);padding:.625rem .75rem;text-align:center;}
+.cc-cell-val{font-family:'DM Mono',monospace;font-size:20px;font-weight:500;color:var(--text);}
+.cc-cell-lbl{font-size:10px;color:var(--muted);margin-top:2px;}
+.breakdown-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:.5rem;}
+.month-chips{display:flex;flex-wrap:wrap;gap:5px;}
+.mc{padding:4px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:20px;font-size:11px;font-family:'DM Mono',monospace;color:var(--text2);display:flex;align-items:center;gap:5px;}
+.mc-val{font-weight:600;color:var(--accent);}
+.mc-lbl{color:var(--muted);}
+
+/* ══ LOG ENTRIES ══ */
+.log-entry{display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--border);font-size:12px;}
+.log-entry:last-child{border-bottom:none;}
+.pill-in{background:var(--accent-dim);color:var(--accent);border:1px solid rgba(0,229,160,.2);padding:2px 9px;border-radius:20px;font-size:10px;font-weight:700;}
+.pill-out{background:var(--danger-dim);color:var(--danger);border:1px solid rgba(255,79,106,.2);padding:2px 9px;border-radius:20px;font-size:10px;font-weight:700;}
+
+/* ══ MODAL ══ */
+.moverlay{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;z-index:999;padding:1rem;backdrop-filter:blur(5px);}
+.moverlay.open{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:var(--rxl);padding:1.75rem;width:100%;max-width:460px;box-shadow:var(--sh-lg);}
+.modal-lg{max-width:700px;}
+.mtitle{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;margin-bottom:1.25rem;letter-spacing:-.02em;}
+.mactions{display:flex;gap:8px;justify-content:flex-end;margin-top:1.25rem;}
+
+/* ══ VC BTNS ══ */
+.vc-btn{width:50px;height:50px;border-radius:50%;border:2px solid var(--border2);background:var(--surface2);color:var(--muted);font-size:18px;font-weight:700;cursor:pointer;transition:all .15s;font-family:'Syne',sans-serif;}
+.vc-btn.active{background:var(--accent-dim);border-color:var(--accent);color:var(--accent);}
+
+/* ══ SVCLIST ══ */
+.svc-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);}
+.svc-row:last-child{border-bottom:none;}
+.svc-nm{flex:1;font-size:13px;}
+
+/* ══ PHONE ══ */
+.phone-row{display:flex;gap:7px;}
+.ph-pre{padding:10px 14px;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--r);color:var(--accent);font-family:'DM Mono',monospace;font-size:13px;font-weight:600;white-space:nowrap;}
+
+/* ══ BLOCKED BANNER ══ */
+.blocked-banner{background:var(--danger-dim);border:1px solid var(--danger-glow);border-radius:var(--rxl);padding:2rem;text-align:center;margin-bottom:1rem;}
+.blocked-banner h2{color:var(--danger);font-family:'Syne',sans-serif;font-size:20px;margin-bottom:.5rem;}
+.blocked-banner p{color:var(--muted);font-size:13px;}
+
+/* ══ SCROLL ══ */
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--surface4);border-radius:99px;}
+
+/* ══ ADMIN PREVIEW BADGE ══ */
+.preview-mode-bar{background:linear-gradient(90deg,rgba(168,85,247,.15),rgba(168,85,247,.08));border:1px solid rgba(168,85,247,.3);border-radius:var(--r);padding:8px 14px;display:flex;align-items:center;gap:8px;margin-bottom:1rem;font-size:12px;color:var(--purple);}
+.preview-mode-bar svg{width:14px;height:14px;flex-shrink:0;}
+
+@media(max-width:760px){.sidebar{display:none;}.main{margin-left:0;}.g2,.g3,.g4,.cc-grid{grid-template-columns:1fr;}.page{padding:1rem;}.ar-times{display:none;}}
+</style>
+</head>
+<body>
+
+<!-- ═══════ LOGIN ═══════ -->
+<div id="v-login" class="view active">
+  <div class="login-wrap">
+    <div class="login-card">
+      <div class="llogo">
+        <div class="llogo-icon"><svg fill="none" viewBox="0 0 24 24" stroke="#00e5a0" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg></div>
+        <div><div class="llogo-text">Pro Dispatch</div><div class="llogo-sub">Agent Portal v3</div></div>
+      </div>
+      <div class="login-h">Welcome back</div>
+      <div class="login-sub">Sign in with your agent credentials to continue.</div>
+      <div class="emsg" id="lerr">Incorrect username or password.</div>
+      <div class="wmsg" id="lerr-block">⛔ Your account has been <strong>blocked</strong> by an administrator.</div>
+      <div class="wmsg" id="lerr-dis">This account is <strong>disabled</strong>. Contact your administrator.</div>
+      <div class="field"><label>Username</label><input class="finput" type="text" id="li-u" placeholder="your.username" autocomplete="username"></div>
+      <div class="field"><label>Password</label><input class="finput" type="password" id="li-p" placeholder="••••••••" autocomplete="current-password"></div>
+      <button class="btn btn-p btn-full" onclick="doLogin()" style="padding:12px;font-size:15px;margin-top:.5rem">Sign in</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════ APP ═══════ -->
+<div id="v-app" class="view">
+<div class="app">
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-icon"><svg fill="none" viewBox="0 0 24 24" stroke="#00e5a0" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg></div>
+    <div><div class="sb-logo-text">Pro Dispatch</div><div class="sb-logo-ver">v3 Portal</div></div>
+  </div>
+  <div class="sb-clocks">
+    <div class="clock-box">
+      <div class="clock-lbl"><span class="clk-dot green"></span>🇵🇰 Pakistan (PKT)</div>
+      <div class="clock-val" id="clk-pkt">--:--:--</div>
+      <div class="clock-dt" id="clk-pkt-d">---</div>
+    </div>
+    <div class="clock-box">
+      <div class="clock-lbl"><span class="clk-dot blue"></span>🇺🇸 United States</div>
+      <div class="clock-val" id="clk-us">--:--:--</div>
+      <div class="clock-dt" id="clk-us-d">---</div>
+      <select class="tz-sel" id="us-tz" onchange="usTZ=this.value">
+        <optgroup label="— Eastern —">
+          <option value="America/New_York">New York / ET</option>
+          <option value="America/Indiana/Indianapolis">Indiana / ET</option>
+          <option value="America/Detroit">Michigan / ET</option>
+          <option value="America/Kentucky/Louisville">Kentucky / ET</option>
+        </optgroup>
+        <optgroup label="— Central —">
+          <option value="America/Chicago">Illinois / Chicago CT</option>
+          <option value="America/Chicago">Texas / CT</option>
+          <option value="America/Chicago">Wisconsin / CT</option>
+          <option value="America/Chicago">Minnesota / CT</option>
+          <option value="America/Chicago">Tennessee / CT</option>
+        </optgroup>
+        <optgroup label="— Mountain —">
+          <option value="America/Denver">Colorado / MT</option>
+          <option value="America/Phoenix">Arizona / MST</option>
+          <option value="America/Denver">Utah / MT</option>
+          <option value="America/Denver">New Mexico / MT</option>
+        </optgroup>
+        <optgroup label="— Pacific —">
+          <option value="America/Los_Angeles">California / PT</option>
+          <option value="America/Los_Angeles">Washington / PT</option>
+          <option value="America/Los_Angeles">Oregon / PT</option>
+          <option value="America/Los_Angeles">Nevada / PT</option>
+        </optgroup>
+        <optgroup label="— Other —">
+          <option value="America/Anchorage">Alaska / AKT</option>
+          <option value="Pacific/Honolulu">Hawaii / HST</option>
+        </optgroup>
+      </select>
+    </div>
+  </div>
+  <nav class="sb-nav">
+    <div class="nsec">Agent</div>
+    <button class="nitem active" id="nav-form" onclick="showPage('form')">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+      New appointment
+    </button>
+    <div class="nsec adm" id="nsec-adm" style="display:none">Admin</div>
+    <button class="nitem adm" id="nav-monitor" onclick="showPage('monitor')" style="display:none">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+      Live monitor
+    </button>
+    <button class="nitem adm" id="nav-stats" onclick="showPage('stats')" style="display:none">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+      Appt counters
+    </button>
+    <button class="nitem adm" id="nav-logs" onclick="showPage('logs')" style="display:none">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+      Activity logs
+      <span class="nbadge" id="log-badge" style="display:none">0</span>
+    </button>
+    <button class="nitem adm" id="nav-users" onclick="showPage('users')" style="display:none">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+      Manage agents
+    </button>
+    <button class="nitem adm" id="nav-settings" onclick="showPage('settings')" style="display:none">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      Settings
+    </button>
+  </nav>
+  <div class="sb-user">
+    <div class="uavatar" id="sb-av">AG</div>
+    <div class="uinfo"><div class="uname" id="sb-nm">Agent</div><div class="urole" id="sb-rl">Agent</div></div>
+    <button class="logout-btn" onclick="doLogout()" title="Sign out">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+    </button>
+  </div>
+</div><!-- /sidebar -->
+
+<!-- MAIN -->
+<div class="main">
+
+<!-- ══ FORM PAGE ══ -->
+<div class="page active" id="page-form">
+  <div id="blocked-banner" class="blocked-banner" style="display:none">
+    <h2>🚫 Account Restricted</h2>
+    <p>Your account has been restricted by an administrator. You cannot submit new appointments at this time. Please contact your supervisor.</p>
+  </div>
+  <div id="form-body">
+    <!-- PREVIEW MODE BAR (shown when admin previews an agent) -->
+    <div class="preview-mode-bar" id="preview-mode-bar" style="display:none">
+      <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+      <strong>Admin Preview Mode</strong> — Viewing as <span id="preview-agent-name" style="color:var(--text);margin:0 4px"></span>
+      <button class="btn btn-xs btn-purple" style="margin-left:auto" onclick="exitPreview()">Exit preview</button>
+    </div>
+
+    <!-- COUNTER BANNER -->
+    <div class="counter-banner" id="counter-banner">
+      <div class="cb-main">
+        <div class="cb-title">Your submission counter — <span id="cb-agentid" style="font-family:'DM Mono',monospace;font-weight:600"></span></div>
+        <div class="cb-seq"><span style="font-size:14px;color:var(--muted)">#</span><span id="cb-next">—</span> <span>next submission</span></div>
+      </div>
+      <div class="cb-div"></div>
+      <div class="cb-stats">
+        <div class="cb-stat"><div class="cb-stat-val" id="cb-today">0</div><div class="cb-stat-lbl">Today</div></div>
+        <div class="cb-div"></div>
+        <div class="cb-stat"><div class="cb-stat-val" id="cb-month">0</div><div class="cb-stat-lbl" id="cb-month-lbl">This month</div></div>
+        <div class="cb-div"></div>
+        <div class="cb-stat"><div class="cb-stat-val" id="cb-year">0</div><div class="cb-stat-lbl" id="cb-year-lbl">This year</div></div>
+        <div class="cb-div"></div>
+        <div class="cb-stat"><div class="cb-stat-val" id="cb-total">0</div><div class="cb-stat-lbl">All time</div></div>
+      </div>
+    </div>
+
+    <div class="ph"><h1>New appointment</h1><p>Select number of vehicles — each gets its own model, services, and subtotal with optional manual override.</p></div>
+
+    <div class="card">
+      <div class="ctitle">Customer info</div>
+      <div class="g2" style="margin-bottom:12px">
+        <div class="field"><label>Customer name</label><input class="finput" type="text" id="f-nm" placeholder="John Smith" oninput="liveSync()"></div>
+        <div class="field">
+          <label>Cell number</label>
+          <div class="phone-row">
+            <div class="ph-pre">🇺🇸 +1</div>
+            <input class="finput" type="tel" id="f-ph" placeholder="(555) 123-4567" oninput="liveSync()" style="flex:1">
+          </div>
+        </div>
+      </div>
+      <div class="field" style="margin-bottom:12px"><label>Address</label><input class="finput" type="text" id="f-addr" placeholder="123 Main St" oninput="liveSync()"></div>
+      <div class="g3">
+        <div class="field"><label>City & State</label><input class="finput" type="text" id="f-city" placeholder="Dallas, TX" oninput="liveSync()"></div>
+        <div class="field"><label>Zip code</label><input class="finput" type="text" id="f-zip" placeholder="75001" oninput="liveSync()"></div>
+        <div class="field"><label>Facebook page</label><input class="finput" type="text" id="f-fb" placeholder="Page name"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="ctitle">Appointment</div>
+      <div class="g2">
+        <div class="field"><label>Date</label><input class="finput" type="date" id="f-dt" oninput="liveSync()"></div>
+        <div class="field"><label>Customer comments</label><input class="finput" type="text" id="f-cm" placeholder="Special requests..."></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="ctitle" style="margin-bottom:.75rem">Number of vehicles</div>
+      <div style="display:flex;gap:9px;flex-wrap:wrap" id="vcbtns"></div>
+    </div>
+
+    <div id="vcontainer"></div>
+
+    <div class="gtbar" id="gtbar" style="display:none">
+      <div>
+        <div class="gtlbl">Grand total</div>
+        <div class="gtamt" id="gtamt">$0.00</div>
+        <div class="gtparts" id="gtparts"></div>
+      </div>
+      <div style="text-align:right">
+        <div class="gtlbl">Vehicles</div>
+        <div style="font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:var(--accent)" id="gtvc">1</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="ctitle">Agent info (auto-filled)</div>
+      <div class="g2">
+        <div class="field"><label>Agent name</label><input class="finput" type="text" id="f-ag" readonly style="opacity:.55;cursor:not-allowed"></div>
+        <div class="field"><label>Agent ID</label><input class="finput" type="text" id="f-aid" readonly style="opacity:.55;cursor:not-allowed"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="ctitle">WhatsApp message preview</div>
+      <div class="wabox" id="f-wa">Fill in the form to see the preview...</div>
+    </div>
+
+    <div style="display:flex;gap:10px;align-items:center;margin-top:.5rem" id="submit-row">
+      <button class="btn btn-p" onclick="submitForm()" style="padding:12px 32px;font-size:15px" id="submit-btn">Submit appointment</button>
+      <span style="font-size:12px;color:var(--muted)" id="f-st"></span>
+    </div>
+    <div style="margin-top:.75rem">
+      <div class="emsg" id="f-err"></div>
+      <div class="smsg" id="f-ok"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MONITOR PAGE ══ -->
+<div class="page" id="page-monitor">
+  <div class="ph ph-row">
+    <div><h1>Live monitor</h1><p>Real-time agent activity, online status and live form preview.</p></div>
+    <button class="btn btn-sm" onclick="renderMonitor()" style="flex-shrink:0">↻ Refresh</button>
+  </div>
+  <div class="g4" style="margin-bottom:1.25rem">
+    <div class="stat-card"><div class="stat-lbl">Total agents</div><div class="stat-num c-blue" id="mon-total">0</div></div>
+    <div class="stat-card"><div class="stat-lbl">Online now</div><div class="stat-num c-green" id="mon-online">0</div></div>
+    <div class="stat-card"><div class="stat-lbl">Blocked</div><div class="stat-num c-red" id="mon-blocked">0</div></div>
+    <div class="stat-card"><div class="stat-lbl">Total appts (all)</div><div class="stat-num c-purple" id="mon-appts">0</div></div>
+  </div>
+  <div id="monitor-list"></div>
+</div>
+
+<!-- ══ STATS PAGE ══ -->
+<div class="page" id="page-stats">
+  <div class="ph ph-row">
+    <div><h1>Appointment counters</h1><p>Per-agent submission counts — total, yearly, monthly and daily breakdown.</p></div>
+    <div style="display:flex;gap:8px">
+      <select id="stats-year-filter" onchange="renderStats()" class="finput" style="width:auto;padding:7px 12px">
+        <option value="">All years</option>
+      </select>
+      <select id="stats-month-filter" onchange="renderStats()" class="finput" style="width:auto;padding:7px 12px">
+        <option value="">All months</option>
+        <option value="01">January</option><option value="02">February</option><option value="03">March</option>
+        <option value="04">April</option><option value="05">May</option><option value="06">June</option>
+        <option value="07">July</option><option value="08">August</option><option value="09">September</option>
+        <option value="10">October</option><option value="11">November</option><option value="12">December</option>
+      </select>
+    </div>
+  </div>
+  <div class="g4" style="margin-bottom:1.25rem">
+    <div class="stat-card"><div class="stat-lbl">Total (all agents)</div><div class="stat-num c-purple" id="st-grand">0</div></div>
+    <div class="stat-card"><div class="stat-lbl">This month</div><div class="stat-num c-blue" id="st-month">0</div></div>
+    <div class="stat-card"><div class="stat-lbl">This year</div><div class="stat-num c-green" id="st-year">0</div></div>
+    <div class="stat-card"><div class="stat-lbl">Today</div><div class="stat-num c-amber" id="st-today">0</div></div>
+  </div>
+  <div id="stats-list"></div>
+</div>
+
+<!-- ══ LOGS PAGE ══ -->
+<div class="page" id="page-logs">
+  <div class="ph ph-row">
+    <div><h1>Activity logs</h1><p>Login / logout history for all agents and admins.</p></div>
+    <button class="btn btn-d btn-sm" onclick="clearLogs()">Clear logs</button>
+  </div>
+  <div style="margin-bottom:1rem;display:flex;gap:8px;flex-wrap:wrap">
+    <input type="text" id="log-search" placeholder="Search name or ID…" oninput="renderLogs()"
+      style="padding:8px 12px;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--r);color:var(--text);font-size:13px;outline:none;width:210px;">
+    <select id="log-filter" onchange="renderLogs()"
+      style="padding:8px 12px;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--r);color:var(--text);font-size:13px;outline:none;">
+      <option value="all">All events</option>
+      <option value="login">Login only</option>
+      <option value="logout">Logout only</option>
+    </select>
+  </div>
+  <div class="dtable-wrap"><div id="log-list"></div></div>
+</div>
+
+<!-- ══ USERS PAGE ══ -->
+<div class="page" id="page-users">
+  <div class="ph"><h1>Manage agents</h1><p>Create, edit, block, and remove agent accounts.</p></div>
+  <div style="margin-bottom:1rem"><button class="btn btn-p" onclick="openCreate()">+ New agent</button></div>
+  <div class="dtable-wrap">
+    <table class="dtable"><thead><tr><th>Name</th><th>Username</th><th>Agent ID</th><th>Role</th><th>Status</th><th>Actions</th></tr></thead>
+    <tbody id="utbody"></tbody></table>
+  </div>
+</div>
+
+<!-- ══ SETTINGS PAGE ══ -->
+<div class="page" id="page-settings">
+  <div class="ph"><h1>Settings</h1><p>Configure Google Sheets connection and default services.</p></div>
+  <div class="card">
+    <div class="ctitle">Google Sheets Apps Script URL</div>
+    <div class="field"><label>Web App URL</label><input class="finput" type="text" id="s-url" placeholder="https://script.google.com/macros/s/..."></div>
+    <button class="btn btn-p btn-sm" onclick="saveSettings()" style="margin-top:4px">Save URL</button>
+    <div class="smsg" id="s-ok" style="margin-top:10px">✅ Settings saved!</div>
+  </div>
+  <div class="card">
+    <div class="ctitle">Default services & prices</div>
+    <div id="svclist"></div>
+    <div class="div"></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+      <input type="text" id="ns-nm" placeholder="Service name" style="flex:1;min-width:130px;padding:8px 11px;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--r);color:var(--text);font-size:13px;outline:none;font-family:'DM Sans',sans-serif">
+      <input type="number" id="ns-pr" placeholder="$ price" style="width:90px;padding:8px 11px;background:var(--surface2);border:1px solid var(--border2);border-radius:var(--r);color:var(--text);font-size:13px;outline:none;font-family:'DM Mono',monospace">
+      <button class="btn btn-p btn-sm" onclick="addSvcSettings()">Add service</button>
+    </div>
+    <div style="font-size:12px;color:var(--muted)">Changes apply to the appointment form immediately.</div>
+  </div>
+</div>
+
+</div><!-- /main -->
+</div><!-- /app -->
+</div><!-- /v-app -->
+
+<!-- MODAL: USER -->
+<div class="moverlay" id="m-user">
+  <div class="modal">
+    <div class="mtitle" id="m-title">Create new agent</div>
+    <div class="emsg" id="m-err"></div>
+    <div class="field"><label>Full name</label><input class="finput" type="text" id="m-nm" placeholder="Jane Smith"></div>
+    <div class="g2">
+      <div class="field"><label>Username</label><input class="finput" type="text" id="m-us" placeholder="jane.smith"></div>
+      <div class="field"><label>Agent ID</label><input class="finput" type="text" id="m-id" placeholder="AGT-002"></div>
+    </div>
+    <div class="field"><label>Password</label><input class="finput" type="password" id="m-pw" placeholder="Min 6 characters"></div>
+    <div class="field"><label>Role</label><select class="finput" id="m-rl"><option value="agent">Agent</option><option value="admin">Admin</option></select></div>
+    <div class="mactions">
+      <button class="btn" onclick="document.getElementById('m-user').classList.remove('open')">Cancel</button>
+      <button class="btn btn-p" onclick="saveUser()" id="m-sbtn">Create agent</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: PASSWORD -->
+<div class="moverlay" id="m-pwm">
+  <div class="modal">
+    <div class="mtitle">Change password</div>
+    <div class="emsg" id="pw-err"></div>
+    <div class="smsg" id="pw-ok"></div>
+    <div style="margin-bottom:1rem;padding:.75rem 1rem;background:var(--surface2);border-radius:var(--r);font-size:13px;color:var(--muted)">
+      Changing password for: <strong id="pw-tgt-name" style="color:var(--text)">—</strong>
+    </div>
+    <input type="hidden" id="pw-tgt">
+    <div class="field"><label>New password</label><input class="finput" type="password" id="pw-n" placeholder="Min 6 characters"></div>
+    <div class="field"><label>Confirm password</label><input class="finput" type="password" id="pw-c" placeholder="Repeat password"></div>
+    <div class="mactions">
+      <button class="btn" onclick="closePwModal()">Cancel</button>
+      <button class="btn btn-p" onclick="savePw()">Update password</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: LIVE PREVIEW -->
+<div class="moverlay" id="m-preview">
+  <div class="modal modal-lg">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:1.25rem">
+      <div class="live-dot"></div>
+      <div class="mtitle" style="margin:0" id="preview-modal-title">Live preview</div>
+      <div style="margin-left:auto;display:flex;gap:8px">
+        <button class="btn btn-sm btn-purple" onclick="enterPreviewMode()">Enter preview mode</button>
+        <button class="btn btn-sm" onclick="document.getElementById('m-preview').classList.remove('open')">Close</button>
+      </div>
+    </div>
+    <div id="preview-modal-age" style="font-size:11px;color:var(--muted);margin-bottom:.75rem"></div>
+    <div class="preview-fields" id="preview-modal-fields"></div>
+    <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin-bottom:.5rem">WhatsApp preview (live)</div>
+    <div class="preview-wa" id="preview-modal-wa">No data yet — agent hasn't started filling the form.</div>
+    <div style="margin-top:.875rem;display:flex;align-items:center;justify-content:space-between">
+      <span style="font-size:11px;color:var(--muted)">Refreshes automatically every 3 seconds</span>
+      <button class="btn btn-xs" onclick="pollPreview()">↻ Refresh now</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: BLOCK CONFIRM -->
+<div class="moverlay" id="m-block">
+  <div class="modal">
+    <div class="mtitle" id="block-title">Block agent</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:1.25rem" id="block-msg"></div>
+    <div class="mactions">
+      <button class="btn" onclick="document.getElementById('m-block').classList.remove('open')">Cancel</button>
+      <button class="btn" id="block-confirm-btn">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════
+   STORAGE
+═══════════════════════════════════════════════ */
+const DB={
+  get:k=>{try{return JSON.parse(localStorage.getItem(k));}catch{return null;}},
+  set:(k,v)=>localStorage.setItem(k,JSON.stringify(v)),
+  del:k=>localStorage.removeItem(k)
+};
+
+/* ═══════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════ */
+function init(){
+  if(!DB.get('pd_users'))DB.set('pd_users',[
+    {name:'Administrator',username:'admin',password:'admin123',agentId:'ADMIN-001',role:'admin',status:'active'},
+    {name:'Demo Agent',username:'agent',password:'agent123',agentId:'AGT-001',role:'agent',status:'active'},
+  ]);
+  const users=DB.get('pd_users')||[];
+  let changed=false;
+  users.forEach(u=>{if(!u.status){u.status='active';changed=true;}});
+  if(changed)DB.set('pd_users',users);
+  if(!DB.get('pd_svcs'))DB.set('pd_svcs',[
+    {name:'Exterior wash',price:40},{name:'Interior shampoo',price:100},
+    {name:'Full polish',price:50},{name:'Car wax',price:75},
+    {name:'Tire shine',price:25},{name:'Engine clean',price:80},
+    {name:'Paint protection',price:150},{name:'Odor removal',price:60},
+    {name:'Headlight restoration',price:45},{name:'Window tinting',price:200},
+  ]);
+  if(!DB.get('pd_cfg'))DB.set('pd_cfg',{url:''});
+  if(!DB.get('pd_logs'))DB.set('pd_logs',[]);
+  if(!DB.get('pd_appts'))DB.set('pd_appts',[]);
+  if(!DB.get('pd_pings'))DB.set('pd_pings',{});
+}
+
+/* ═══════════════════════════════════════════════
+   CLOCKS
+═══════════════════════════════════════════════ */
+let usTZ='America/New_York';
+document.getElementById('us-tz').addEventListener('change',function(){usTZ=this.value;});
+function tickClocks(){
+  const now=new Date();
+  const fmt=(tz,h12)=>({
+    t:new Intl.DateTimeFormat('en-US',{timeZone:tz,hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:h12}).format(now),
+    d:new Intl.DateTimeFormat('en-US',{timeZone:tz,weekday:'short',month:'short',day:'numeric'}).format(now)
+  });
+  const pkt=fmt('Asia/Karachi',true);
+  const us=fmt(usTZ,true);
+  document.getElementById('clk-pkt').textContent=pkt.t;
+  document.getElementById('clk-pkt-d').textContent=pkt.d;
+  document.getElementById('clk-us').textContent=us.t;
+  document.getElementById('clk-us-d').textContent=us.d;
+}
+setInterval(tickClocks,1000);tickClocks();
+
+function fmtPKT(iso){
+  if(!iso)return '—';
+  return new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Karachi',hour:'2-digit',minute:'2-digit',hour12:true,day:'numeric',month:'short',year:'numeric'}).format(new Date(iso));
+}
+function fmtPKTshort(iso){
+  if(!iso)return '—';
+  return new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Karachi',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:true}).format(new Date(iso));
+}
+
+/* ═══════════════════════════════════════════════
+   DATE HELPERS
+═══════════════════════════════════════════════ */
+const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+function todayStr(){const n=new Date();return n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0')+'-'+String(n.getDate()).padStart(2,'0');}
+function monthStr(){const n=new Date();return n.getFullYear()+'-'+String(n.getMonth()+1).padStart(2,'0');}
+function yearStr(){return String(new Date().getFullYear());}
+function apptMonth(iso){return iso?iso.substring(0,7):'';}
+function apptYear(iso){return iso?iso.substring(0,4):'';}
+function apptDay(iso){return iso?iso.substring(0,10):'';}
+function monthLabel(ym){if(!ym)return '';const[y,m]=ym.split('-');return MONTHS[parseInt(m)-1]+' '+y;}
+
+/* ═══════════════════════════════════════════════
+   APPOINTMENT COUNTERS
+═══════════════════════════════════════════════ */
+function getAgentAppts(agentId,appts){
+  return (appts||DB.get('pd_appts')||[]).filter(a=>a.agentId===agentId);
+}
+function countForAgent(agentId,appts){
+  const list=getAgentAppts(agentId,appts);
+  const today=todayStr(),month=monthStr(),year=yearStr();
+  const byMonth={};
+  list.forEach(a=>{
+    const ym=apptMonth(a.timestamp);
+    if(!byMonth[ym])byMonth[ym]=0;
+    byMonth[ym]++;
+  });
+  return{
+    total:list.length,
+    todayCount:list.filter(a=>apptDay(a.timestamp)===today).length,
+    monthCount:list.filter(a=>apptMonth(a.timestamp)===month).length,
+    yearCount:list.filter(a=>apptYear(a.timestamp)===year).length,
+    byMonth
+  };
+}
+function updateCounterBanner(){
+  if(!cu)return;
+  const appts=DB.get('pd_appts')||[];
+  const c=countForAgent(cu.agentId,appts);
+  const now=new Date();
+  document.getElementById('cb-agentid').textContent=cu.agentId;
+  document.getElementById('cb-next').textContent=c.total+1;
+  document.getElementById('cb-today').textContent=c.todayCount;
+  document.getElementById('cb-month').textContent=c.monthCount;
+  document.getElementById('cb-month-lbl').textContent=MONTHS[now.getMonth()];
+  document.getElementById('cb-year').textContent=c.yearCount;
+  document.getElementById('cb-year-lbl').textContent=now.getFullYear();
+  document.getElementById('cb-total').textContent=c.total;
+}
+
+/* ═══════════════════════════════════════════════
+   AUTH / SESSION
+═══════════════════════════════════════════════ */
+let cu=null,heartbeatTimer=null,previewUsername=null,previewPollTimer=null;
+let previewModeActive=false; // admin entering form as agent view
+
+function writeLog(type,user){
+  const logs=DB.get('pd_logs')||[];
+  logs.unshift({type,username:user.username,name:user.name,agentId:user.agentId,role:user.role,time:new Date().toISOString()});
+  if(logs.length>1000)logs.length=1000;
+  DB.set('pd_logs',logs);
+  updateLogBadge();
+}
+function setPing(u){const p=DB.get('pd_pings')||{};p[u]=new Date().toISOString();DB.set('pd_pings',p);}
+function clearPing(u){const p=DB.get('pd_pings')||{};delete p[u];DB.set('pd_pings',p);}
+function isOnline(u){const p=(DB.get('pd_pings')||{})[u];return p&&(Date.now()-new Date(p).getTime())<90000;}
+function updateLogBadge(){
+  const logs=DB.get('pd_logs')||[];
+  const b=document.getElementById('log-badge');if(!b)return;
+  if(logs.length>0&&cu&&cu.role==='admin'){b.textContent=Math.min(logs.length,99);b.style.display='block';}
+  else b.style.display='none';
+}
+
+function doLogin(){
+  ['lerr','lerr-block','lerr-dis'].forEach(id=>document.getElementById(id).style.display='none');
+  const u=document.getElementById('li-u').value.trim().toLowerCase();
+  const p=document.getElementById('li-p').value;
+  const user=(DB.get('pd_users')||[]).find(x=>x.username.toLowerCase()===u&&x.password===p);
+  if(!user){document.getElementById('lerr').style.display='block';return;}
+  if(user.status==='blocked'){document.getElementById('lerr-block').style.display='block';return;}
+  if(user.status==='disabled'){document.getElementById('lerr-dis').style.display='block';return;}
+  cu=user;DB.set('pd_sess',user.username);
+  writeLog('login',user);setPing(user.username);loadApp();
+}
+function doLogout(){
+  if(cu){writeLog('logout',cu);clearPing(cu.username);}
+  if(heartbeatTimer)clearInterval(heartbeatTimer);
+  if(previewPollTimer)clearInterval(previewPollTimer);
+  cu=null;DB.set('pd_sess',null);
+  document.getElementById('v-login').classList.add('active');
+  document.getElementById('v-app').classList.remove('active');
+  document.getElementById('li-u').value='';document.getElementById('li-p').value='';
+}
+function checkSession(){
+  init();
+  const s=DB.get('pd_sess');
+  if(s){const u=(DB.get('pd_users')||[]).find(x=>x.username===s);if(u&&u.status==='active'){cu=u;setPing(u.username);loadApp();}else DB.set('pd_sess',null);}
+}
+document.getElementById('li-p').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+document.getElementById('li-u').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+
+function loadApp(){
+  document.getElementById('v-login').classList.remove('active');
+  document.getElementById('v-app').classList.add('active');
+  document.getElementById('sb-nm').textContent=cu.name;
+  document.getElementById('sb-rl').textContent=cu.role==='admin'?'Administrator':'Agent';
+  document.getElementById('sb-av').textContent=cu.name.split(' ').map(w=>w[0]).join('').toUpperCase().substring(0,2);
+  const isA=cu.role==='admin';
+  document.querySelectorAll('.adm').forEach(el=>el.style.display=isA?'flex':'none');
+  document.getElementById('nsec-adm').style.display=isA?'block':'none';
+  document.getElementById('f-ag').value=cu.name;
+  document.getElementById('f-aid').value=cu.agentId;
+  // Check block status
+  const fresh=(DB.get('pd_users')||[]).find(x=>x.username===cu.username);
+  const blk=fresh&&fresh.status==='blocked';
+  document.getElementById('blocked-banner').style.display=blk?'block':'none';
+  document.getElementById('form-body').querySelectorAll('.card,.counter-banner,.gtbar').forEach(el=>el.style.opacity=blk?'.4':'1');
+  document.getElementById('submit-btn').disabled=blk;
+  renderVcBtns();setVC(1);showPage('form');
+  updateLogBadge();updateCounterBanner();
+  // Populate year filter
+  const appts=DB.get('pd_appts')||[];
+  const years=[...new Set(appts.map(a=>apptYear(a.timestamp)))].sort((a,b)=>b-a);
+  const ysel=document.getElementById('stats-year-filter');
+  ysel.innerHTML='<option value="">All years</option>';
+  years.forEach(y=>{const o=document.createElement('option');o.value=y;o.textContent=y;ysel.appendChild(o);});
+  // Heartbeat
+  if(heartbeatTimer)clearInterval(heartbeatTimer);
+  heartbeatTimer=setInterval(()=>{
+    if(!cu)return;
+    setPing(cu.username);
+    const users=DB.get('pd_users')||[];
+    const fresh=users.find(x=>x.username===cu.username);
+    if(fresh&&fresh.status!=='active')doLogout();
+  },25000);
+}
+
+function showPage(p){
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.nitem').forEach(x=>x.classList.remove('active'));
+  const pg=document.getElementById('page-'+p);
+  const nav=document.getElementById('nav-'+p);
+  if(pg)pg.classList.add('active');
+  if(nav)nav.classList.add('active');
+  if(p==='users')renderUsers();
+  if(p==='settings'){document.getElementById('s-url').value=(DB.get('pd_cfg')||{}).url||'';renderSvcList();}
+  if(p==='monitor')renderMonitor();
+  if(p==='logs')renderLogs();
+  if(p==='stats')renderStats();
+}
+
+/* ═══════════════════════════════════════════════
+   LIVE SYNC (agent saves form state)
+═══════════════════════════════════════════════ */
+function liveSync(){
+  if(!cu||previewModeActive)return;
+  const svcs=DB.get('pd_svcs')||[];
+  let grand=0;
+  const vrows=vd.map((v,vi)=>{
+    let base=0,snames=[];
+    v.sel.forEach(si=>{if(svcs[si]){base+=svcs[si].price;snames.push(svcs[si].name);}});
+    const da=v.dtype==='pct'?(base*(v.disc/100)):Math.min(v.disc,base);
+    const fin=v.manualOn?v.manualVal:Math.max(0,base-da);
+    grand+=fin;
+    return{model:v.model,services:snames,subtotal:base,total:fin};
+  });
+  const state={
+    updated:new Date().toISOString(),
+    name:document.getElementById('f-nm').value,
+    phone:'+1 '+document.getElementById('f-ph').value,
+    addr:document.getElementById('f-addr').value,
+    city:document.getElementById('f-city').value,
+    zip:document.getElementById('f-zip').value,
+    date:document.getElementById('f-dt').value,
+    vehicles:vrows,
+    grand,
+    waText:document.getElementById('f-wa').textContent
+  };
+  DB.set('pd_live_'+cu.username,state);
+  updateWA();
+}
+
+/* ═══════════════════════════════════════════════
+   VEHICLES
+═══════════════════════════════════════════════ */
+let vc=1,vd=[];
+function renderVcBtns(){
+  const cont=document.getElementById('vcbtns');cont.innerHTML='';
+  [1,2,3,4,5].forEach(n=>{
+    const b=document.createElement('button');
+    b.className='vc-btn';b.textContent=n;b.id='vcb'+n;
+    b.onclick=()=>setVC(n);cont.appendChild(b);
+  });
+}
+function setVC(n){
+  vc=n;
+  [1,2,3,4,5].forEach(i=>{const b=document.getElementById('vcb'+i);if(b)b.className='vc-btn'+(i===n?' active':'');});
+  while(vd.length<n)vd.push({model:'',sel:new Set(),disc:0,dtype:'pct',manualOn:false,manualVal:0});
+  while(vd.length>n)vd.pop();
+  renderVehicles();
+}
+function renderVehicles(){
+  const svcs=DB.get('pd_svcs')||[];
+  const cont=document.getElementById('vcontainer');cont.innerHTML='';
+  vd.forEach((v,vi)=>{
+    let base=0;v.sel.forEach(si=>{if(svcs[si])base+=svcs[si].price;});
+    const da=v.dtype==='pct'?(base*(v.disc/100)):Math.min(v.disc,base);
+    const calcFin=Math.max(0,base-da);
+    const fin=v.manualOn?v.manualVal:calcFin;
+    const chips=svcs.map((s,si)=>`<div class="schip${v.sel.has(si)?' on':''}" onclick="togSvc(${vi},${si})"><span class="sn">${s.name}</span><span class="sp">+$${s.price}</span></div>`).join('');
+    const card=document.createElement('div');card.className='vcard';
+    card.innerHTML=`
+      <div class="vhead"><div class="vbadge">${vi+1}</div><div class="vtitle">Vehicle ${vi+1}</div></div>
+      <div class="field" style="margin-bottom:12px"><label>Make & Model</label>
+        <input type="text" value="${v.model}" placeholder="e.g. 2022 Toyota Camry" oninput="updModel(${vi},this.value)" class="finput">
+      </div>
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);margin-bottom:8px">Services — tap to select</div>
+      <div class="sgrid">${chips}</div>
+      <div class="vstotal">
+        <div class="strow"><span>Subtotal</span><span class="stval">$${base.toFixed(2)}</span></div>
+        <div class="strow" style="align-items:center"><span>Discount</span>
+          <div class="discrow">
+            <input type="number" class="dinput" value="${v.disc||''}" min="0" placeholder="0" oninput="updDisc(${vi},this.value)">
+            <select class="dtype" onchange="updDtype(${vi},this.value)">
+              <option value="pct"${v.dtype==='pct'?' selected':''}>%</option>
+              <option value="flat"${v.dtype==='flat'?' selected':''}>$</option>
+            </select>
+            <span style="font-family:'DM Mono',monospace;font-size:13px;color:var(--danger)">−$${da.toFixed(2)}</span>
+          </div>
+        </div>
+        <div style="height:1px;background:var(--border);margin:8px 0"></div>
+        <div class="strow">
+          <span class="stfin">Vehicle ${vi+1} total</span>
+          <span class="stfinval"${v.manualOn?' style="text-decoration:line-through;opacity:.35"':''}>$${calcFin.toFixed(2)}</span>
+        </div>
+        <div class="manualrow">
+          <label class="manual-toggle"><input type="checkbox"${v.manualOn?' checked':''} onchange="togManual(${vi},this.checked)"> Override total</label>
+          ${v.manualOn?`<span style="font-size:11px;color:var(--muted)">→</span>
+            <input type="number" class="manual-input" value="${v.manualVal||calcFin}" min="0" oninput="updManual(${vi},this.value)">
+            <span style="font-family:'DM Mono',monospace;font-size:14px;font-weight:700;color:var(--amber)">$${(v.manualVal||calcFin).toFixed(2)}</span>
+          `:`<span style="font-size:11px;color:var(--muted)">auto-calculated</span>`}
+        </div>
+        ${v.manualOn?`<div style="margin-top:6px;font-size:11px;color:var(--amber);background:var(--amber-dim);border:1px solid var(--amber-glow);border-radius:6px;padding:5px 10px;">⚠ Manual override active</div>`:''}
+      </div>`;
+    cont.appendChild(card);
+  });
+  calcGrandTotal();liveSync();
+  document.getElementById('gtbar').style.display=vc>0?'flex':'none';
+}
+function togSvc(vi,si){if(vd[vi].sel.has(si))vd[vi].sel.delete(si);else vd[vi].sel.add(si);renderVehicles();}
+function updModel(vi,v){vd[vi].model=v;liveSync();}
+function updDisc(vi,v){vd[vi].disc=parseFloat(v)||0;renderVehicles();}
+function updDtype(vi,v){vd[vi].dtype=v;renderVehicles();}
+function togManual(vi,on){
+  if(on){const svcs=DB.get('pd_svcs')||[];let base=0;vd[vi].sel.forEach(si=>{if(svcs[si])base+=svcs[si].price;});const da=vd[vi].dtype==='pct'?(base*(vd[vi].disc/100)):Math.min(vd[vi].disc,base);vd[vi].manualVal=Math.max(0,base-da);}
+  vd[vi].manualOn=on;renderVehicles();
+}
+function updManual(vi,v){vd[vi].manualVal=parseFloat(v)||0;calcGrandTotal();liveSync();}
+function calcGrandTotal(){
+  const svcs=DB.get('pd_svcs')||[];
+  let grand=0,parts=[];
+  vd.forEach((v,vi)=>{
+    let base=0;v.sel.forEach(si=>{if(svcs[si])base+=svcs[si].price;});
+    const da=v.dtype==='pct'?(base*(v.disc/100)):Math.min(v.disc,base);
+    const fin=v.manualOn?v.manualVal:Math.max(0,base-da);
+    grand+=fin;parts.push(`V${vi+1}${v.model?' '+v.model.split(' ').slice(-1)[0]:''}: $${fin.toFixed(2)}${v.manualOn?' ✎':''}`);
+  });
+  const amt=document.getElementById('gtamt');
+  if(amt)amt.textContent='$'+grand.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',');
+  const pts=document.getElementById('gtparts');if(pts)pts.textContent=parts.join(' · ');
+  const gvc=document.getElementById('gtvc');if(gvc)gvc.textContent=vc;
+}
+function updateWA(){
+  const svcs=DB.get('pd_svcs')||[];
+  const g=id=>{const el=document.getElementById(id);return el?(el.value||'N/A'):'N/A';};
+  let grand=0;
+  const vlines=vd.map((v,vi)=>{
+    let base=0,snames=[];
+    v.sel.forEach(si=>{if(svcs[si]){base+=svcs[si].price;snames.push(svcs[si].name);}});
+    const da=v.dtype==='pct'?(base*(v.disc/100)):Math.min(v.disc,base);
+    const fin=v.manualOn?v.manualVal:Math.max(0,base-da);
+    grand+=fin;
+    return `🚗 Vehicle ${vi+1}: ${v.model||'N/A'}\n   Services: ${snames.length?snames.join(', '):'None'}\n   Subtotal: $${base.toFixed(2)}${v.disc>0?` | Discount: −$${da.toFixed(2)}`:''}\n   Total: $${fin.toFixed(2)}${v.manualOn?' (manual override)':''}`;
+  }).join('\n\n');
+  const msg=`📋 *NEW APPOINTMENT*\n👤 Name: ${g('f-nm')}\n📞 Phone: +1 ${document.getElementById('f-ph')?document.getElementById('f-ph').value:'N/A'}\n📍 Address: ${g('f-addr')}, ${g('f-city')} ${document.getElementById('f-zip')?document.getElementById('f-zip').value:''}\n📅 Date: ${g('f-dt')}\n\n${vlines}\n\n💰 *Grand Total: $${grand.toFixed(2)}*\n👨‍💼 Agent: ${cu?cu.name:''} (${cu?cu.agentId:''})`;
+  const el=document.getElementById('f-wa');if(el)el.textContent=msg;
+}
+
+function submitForm(){
+  if(previewModeActive)return;
+  const err=document.getElementById('f-err'),ok=document.getElementById('f-ok');
+  err.style.display='none';ok.style.display='none';
+  const svcs=DB.get('pd_svcs')||[];
+  const nm=document.getElementById('f-nm').value.trim();
+  const ph=document.getElementById('f-ph').value.trim();
+  if(!nm||!ph){err.textContent='Customer name and phone are required.';err.style.display='block';return;}
+  const fresh=(DB.get('pd_users')||[]).find(x=>x.username===cu.username);
+  if(fresh&&fresh.status!=='active'){err.textContent='Your account is restricted.';err.style.display='block';return;}
+  let grand=0;
+  const vrows=vd.map((v,vi)=>{
+    let base=0,sn=[];v.sel.forEach(si=>{if(svcs[si]){base+=svcs[si].price;sn.push(svcs[si].name);}});
+    const da=v.dtype==='pct'?(base*(v.disc/100)):Math.min(v.disc,base);
+    const fin=v.manualOn?v.manualVal:Math.max(0,base-da);grand+=fin;
+    return{v:vi+1,model:v.model,services:sn.join(', '),subtotal:base.toFixed(2),discount:da.toFixed(2),manualOverride:v.manualOn,total:fin.toFixed(2)};
+  });
+  // Save to appointment log
+  const appts=DB.get('pd_appts')||[];
+  const apptRecord={
+    id:'APT-'+Date.now(),timestamp:new Date().toISOString(),
+    agentId:cu.agentId,agentName:cu.name,agentUsername:cu.username,
+    customerName:nm,phone:'+1 '+ph,grandTotal:grand.toFixed(2),
+    numVehicles:vc,appointmentDate:document.getElementById('f-dt').value
+  };
+  appts.push(apptRecord);DB.set('pd_appts',appts);
+  const payload={...apptRecord,address:document.getElementById('f-addr').value,stateCity:document.getElementById('f-city').value,zipCode:document.getElementById('f-zip').value,vehicles:JSON.stringify(vrows),facebookPage:document.getElementById('f-fb').value,customerComments:document.getElementById('f-cm').value};
+  const url=(DB.get('pd_cfg')||{}).url||'';
+  if(!url){ok.textContent=`✅ Logged! Appt #${appts.length} for ${nm} — $${grand.toFixed(2)} (no Sheets URL set)`;ok.style.display='block';updateCounterBanner();resetForm();return;}
+  document.getElementById('f-st').textContent='Submitting…';
+  fetch(url,{method:'POST',body:JSON.stringify(payload)})
+    .then(()=>{ok.textContent=`✅ Appointment #${appts.length} submitted!`;ok.style.display='block';document.getElementById('f-st').textContent='';updateCounterBanner();resetForm();})
+    .catch(()=>{err.textContent='Submission failed. Check your Apps Script URL.';err.style.display='block';document.getElementById('f-st').textContent='';});
+}
+function resetForm(){['f-nm','f-ph','f-addr','f-city','f-zip','f-fb','f-cm','f-dt'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});vd=[];setVC(1);}
+
+/* ═══════════════════════════════════════════════
+   LIVE PREVIEW MODAL
+═══════════════════════════════════════════════ */
+let previewingUser=null;
+function openLivePreview(username,name){
+  previewingUser=username;
+  document.getElementById('preview-modal-title').textContent='Live preview — '+name;
+  pollPreview();
+  document.getElementById('m-preview').classList.add('open');
+  if(previewPollTimer)clearInterval(previewPollTimer);
+  previewPollTimer=setInterval(()=>{
+    if(document.getElementById('m-preview').classList.contains('open'))pollPreview();
+  },3000);
+}
+function pollPreview(){
+  if(!previewingUser)return;
+  const state=DB.get('pd_live_'+previewingUser);
+  const ageEl=document.getElementById('preview-modal-age');
+  const fieldsEl=document.getElementById('preview-modal-fields');
+  const waEl=document.getElementById('preview-modal-wa');
+  if(!state){
+    ageEl.textContent='No live data available — agent may not be on the form page.';
+    fieldsEl.innerHTML='';waEl.textContent='—';return;
+  }
+  const secs=Math.round((Date.now()-new Date(state.updated).getTime())/1000);
+  ageEl.textContent=`Last updated: ${secs}s ago (${fmtPKTshort(state.updated)} PKT)`;
+  fieldsEl.innerHTML=`
+    <div class="pf"><div class="pf-lbl">Customer name</div><div class="pf-val">${state.name||'—'}</div></div>
+    <div class="pf"><div class="pf-lbl">Phone</div><div class="pf-val">${state.phone||'—'}</div></div>
+    <div class="pf"><div class="pf-lbl">Address</div><div class="pf-val">${state.addr||'—'}</div></div>
+    <div class="pf"><div class="pf-lbl">City / State</div><div class="pf-val">${state.city||'—'}</div></div>
+    <div class="pf"><div class="pf-lbl">Appt Date</div><div class="pf-val">${state.date||'—'}</div></div>
+    <div class="pf"><div class="pf-lbl">Grand total</div><div class="pf-val" style="font-weight:700;color:var(--accent);font-family:'DM Mono',monospace">$${(state.grand||0).toFixed(2)}</div></div>`;
+  waEl.textContent=state.waText||'—';
+}
+function enterPreviewMode(){
+  // Admin enters form view as the agent (read-only impersonation)
+  document.getElementById('m-preview').classList.remove('open');
+  if(previewPollTimer)clearInterval(previewPollTimer);
+  previewModeActive=true;
+  const state=DB.get('pd_live_'+previewingUser)||{};
+  const agents=DB.get('pd_users')||[];
+  const agent=agents.find(x=>x.username===previewingUser);
+  // Fill form fields with agent's state
+  ['f-nm','f-ph','f-addr','f-city','f-zip','f-dt'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  if(state.name)document.getElementById('f-nm').value=state.name;
+  if(state.phone)document.getElementById('f-ph').value=state.phone.replace('+1 ','');
+  if(state.addr)document.getElementById('f-addr').value=state.addr;
+  if(state.city)document.getElementById('f-city').value=state.city;
+  if(state.zip)document.getElementById('f-zip').value=state.zip;
+  if(state.date)document.getElementById('f-dt').value=state.date;
+  document.getElementById('f-ag').value=agent?agent.name:'—';
+  document.getElementById('f-aid').value=agent?agent.agentId:'—';
+  if(state.waText)document.getElementById('f-wa').textContent=state.waText;
+  document.getElementById('preview-mode-bar').style.display='flex';
+  document.getElementById('preview-agent-name').textContent=agent?agent.name:previewingUser;
+  document.getElementById('submit-btn').disabled=true;
+  document.getElementById('submit-btn').textContent='Submit disabled in preview';
+  showPage('form');
+}
+function exitPreview(){
+  previewModeActive=false;
+  document.getElementById('preview-mode-bar').style.display='none';
+  document.getElementById('submit-btn').disabled=false;
+  document.getElementById('submit-btn').textContent='Submit appointment';
+  document.getElementById('f-ag').value=cu.name;
+  document.getElementById('f-aid').value=cu.agentId;
+  resetForm();
+}
+
+/* ═══════════════════════════════════════════════
+   MONITOR PAGE
+═══════════════════════════════════════════════ */
+function renderMonitor(){
+  const users=DB.get('pd_users')||[];
+  const appts=DB.get('pd_appts')||[];
+  let onlineCount=0,blockedCount=0;
+  const list=document.getElementById('monitor-list');list.innerHTML='';
+
+  users.forEach(u=>{
+    const online=u.status==='active'&&isOnline(u.username);
+    if(online)onlineCount++;
+    if(u.status==='blocked')blockedCount++;
+    const logs=DB.get('pd_logs')||[];
+    const lastLogin=logs.find(l=>l.username===u.username&&l.type==='login');
+    const lastLogout=logs.find(l=>l.username===u.username&&l.type==='logout');
+    const c=countForAgent(u.agentId,appts);
+    const avC=u.status==='blocked'?'av-bl':(online?'av-on':'av-off');
+    const rowC=u.status==='blocked'?'r-blocked':(online?'r-online':'');
+    const statusBadge=u.status==='blocked'?'<span class="badge b-blocked">⛔ Blocked</span>':(u.status==='disabled'?'<span class="badge b-disabled">Disabled</span>':(online?'<span class="badge b-agent">● Online</span>':'<span style="font-size:11px;color:var(--muted);font-weight:600">● Offline</span>'));
+
+    const row=document.createElement('div');row.className='agent-row '+rowC;
+    row.innerHTML=`
+      <div class="ar-av ${avC}">${u.name.split(' ').map(w=>w[0]).join('').toUpperCase().substring(0,2)}</div>
+      <div class="ar-info">
+        <div class="ar-name">${u.name}${u.username===cu.username?' <span style="font-size:10px;color:var(--muted)">(you)</span>':''}</div>
+        <div class="ar-meta">
+          <span class="tag">${u.agentId}</span>
+          <span class="tag">${u.username}</span>
+          <span class="badge ${u.role==='admin'?'b-admin':'b-agent'}">${u.role}</span>
+          ${statusBadge}
+          <span style="font-size:11px;color:var(--muted)">Total: <strong style="color:var(--text)">${c.total}</strong> appts | Today: <strong style="color:var(--accent)">${c.todayCount}</strong> | This month: <strong style="color:var(--blue)">${c.monthCount}</strong></span>
+        </div>
+      </div>
+      <div class="ar-times">
+        <div class="ar-ti"><div class="ar-ti-lbl">Last login (PKT)</div><div class="ar-ti-val">${fmtPKT(lastLogin?lastLogin.time:null)}</div></div>
+        <div class="ar-ti"><div class="ar-ti-lbl">Last logout (PKT)</div><div class="ar-ti-val">${fmtPKT(lastLogout?lastLogout.time:null)}</div></div>
+      </div>
+      <div class="ar-actions">
+        ${online&&u.username!==cu.username?`<button class="btn btn-sm btn-purple" onclick="openLivePreview('${u.username}','${u.name}')">🔴 Live preview</button>`:''}
+        ${u.username!==cu.username?`
+          <button class="btn btn-sm btn-blue" onclick="openPw('${u.username}','${u.name}')">Pwd</button>
+          ${u.status==='blocked'?`<button class="btn btn-sm" onclick="setStatus('${u.username}','active')" style="color:var(--accent)">Unblock</button>`:
+          `<button class="btn btn-sm btn-d" onclick="confirmAction('${u.username}','block')">Block</button>`}
+          ${u.status==='disabled'?`<button class="btn btn-sm" onclick="setStatus('${u.username}','active')">Enable</button>`:
+          `<button class="btn btn-sm btn-warn" onclick="confirmAction('${u.username}','disable')">Disable</button>`}
+        `:'<span style="font-size:11px;color:var(--muted)">Current user</span>'}
+      </div>`;
+    list.appendChild(row);
+  });
+  document.getElementById('mon-total').textContent=users.length;
+  document.getElementById('mon-online').textContent=onlineCount;
+  document.getElementById('mon-blocked').textContent=blockedCount;
+  document.getElementById('mon-appts').textContent=appts.length;
+}
+function confirmAction(username,action){
+  const u=(DB.get('pd_users')||[]).find(x=>x.username===username);if(!u)return;
+  document.getElementById('block-title').textContent=action==='block'?'Block agent':'Disable account';
+  document.getElementById('block-msg').textContent=action==='block'?`Block "${u.name}" (${u.agentId})? They will be immediately signed out.`:`Disable "${u.name}" (${u.agentId})? They cannot log in until re-enabled.`;
+  const btn=document.getElementById('block-confirm-btn');
+  btn.className='btn '+(action==='block'?'btn-d':'btn-warn');
+  btn.textContent=action==='block'?'Block agent':'Disable account';
+  btn.onclick=()=>{setStatus(username,action==='block'?'blocked':'disabled');document.getElementById('m-block').classList.remove('open');};
+  document.getElementById('m-block').classList.add('open');
+}
+function setStatus(username,status){
+  const users=DB.get('pd_users')||[];
+  const u=users.find(x=>x.username===username);if(!u)return;
+  u.status=status;DB.set('pd_users',users);
+  renderMonitor();renderUsers();
+}
+
+/* ═══════════════════════════════════════════════
+   STATS PAGE
+═══════════════════════════════════════════════ */
+function renderStats(){
+  const users=DB.get('pd_users')||[];
+  const appts=DB.get('pd_appts')||[];
+  const selYear=document.getElementById('stats-year-filter').value;
+  const selMonth=document.getElementById('stats-month-filter').value;
+  // Filter appts
+  const filtered=appts.filter(a=>{
+    if(selYear&&apptYear(a.timestamp)!==selYear)return false;
+    if(selMonth&&a.timestamp.substring(5,7)!==selMonth)return false;
+    return true;
+  });
+  // Top summary
+  const today=todayStr(),month=monthStr(),year=yearStr();
+  document.getElementById('st-grand').textContent=filtered.length;
+  document.getElementById('st-month').textContent=appts.filter(a=>apptMonth(a.timestamp)===month).length;
+  document.getElementById('st-year').textContent=appts.filter(a=>apptYear(a.timestamp)===year).length;
+  document.getElementById('st-today').textContent=appts.filter(a=>apptDay(a.timestamp)===today).length;
+  // Per-agent cards
+  const cont=document.getElementById('stats-list');cont.innerHTML='';
+  // Sort by total
+  const sorted=[...users].sort((a,b)=>{
+    const ca=getAgentAppts(a.agentId,appts).length;
+    const cb=getAgentAppts(b.agentId,appts).length;
+    return cb-ca;
+  });
+  sorted.forEach((u,rank)=>{
+    const all=getAgentAppts(u.agentId,appts);
+    const vis=filtered.filter(a=>a.agentId===u.agentId);
+    const c=countForAgent(u.agentId,appts);
+    // Build month breakdown from visible appts
+    const byMonth={};
+    all.forEach(a=>{const ym=apptMonth(a.timestamp);byMonth[ym]=(byMonth[ym]||0)+1;});
+    const byYear={};
+    all.forEach(a=>{const y=apptYear(a.timestamp);byYear[y]=(byYear[y]||0)+1;});
+    const monthKeys=Object.keys(byMonth).sort((a,b)=>b.localeCompare(a));
+    const yearKeys=Object.keys(byYear).sort((a,b)=>b-a);
+
+    const card=document.createElement('div');card.className='counter-card';
+    card.innerHTML=`
+      <div class="cc-head">
+        <div class="cc-av">${u.name.split(' ').map(w=>w[0]).join('').toUpperCase().substring(0,2)}</div>
+        <div class="cc-info">
+          <div class="cc-name">${u.name} <span class="badge ${u.role==='admin'?'b-admin':'b-agent'}">${u.role}</span></div>
+          <div class="cc-id">${u.agentId} · ${u.username}</div>
+        </div>
+        <div class="cc-rank">#${rank+1}</div>
+      </div>
+      <div class="cc-grid">
+        <div class="cc-cell"><div class="cc-cell-val" style="color:var(--accent)">${c.total}</div><div class="cc-cell-lbl">All time</div></div>
+        <div class="cc-cell"><div class="cc-cell-val" style="color:var(--blue)">${c.yearCount}</div><div class="cc-cell-lbl">${yearStr()}</div></div>
+        <div class="cc-cell"><div class="cc-cell-val" style="color:var(--purple)">${c.monthCount}</div><div class="cc-cell-lbl">${MONTHS[new Date().getMonth()].substring(0,3)} ${yearStr()}</div></div>
+        <div class="cc-cell"><div class="cc-cell-val" style="color:var(--amber)">${c.todayCount}</div><div class="cc-cell-lbl">Today</div></div>
+      </div>
+      ${vis.length!==all.length?`<div style="font-size:12px;color:var(--amber);margin-bottom:.5rem">Showing <strong>${vis.length}</strong> of <strong>${all.length}</strong> (filtered)</div>`:''}
+      <div class="breakdown-title">📅 Monthly breakdown</div>
+      <div class="month-chips">${monthKeys.length?monthKeys.map(ym=>`<div class="mc"><span class="mc-val">${byMonth[ym]}</span><span class="mc-lbl">${monthLabel(ym)}</span></div>`).join(''):'<span style="font-size:12px;color:var(--muted)">No data</span>'}</div>
+      ${yearKeys.length>1?`<div class="breakdown-title" style="margin-top:.75rem">📊 Yearly breakdown</div>
+      <div class="month-chips">${yearKeys.map(y=>`<div class="mc"><span class="mc-val">${byYear[y]}</span><span class="mc-lbl">${y}</span></div>`).join('')}</div>`:''}`;
+    cont.appendChild(card);
+  });
+  if(sorted.length===0){cont.innerHTML='<div style="padding:2rem;text-align:center;color:var(--muted);font-size:13px">No agents found.</div>';}
+}
+
+/* ═══════════════════════════════════════════════
+   LOGS
+═══════════════════════════════════════════════ */
+function renderLogs(){
+  const logs=DB.get('pd_logs')||[];
+  const search=(document.getElementById('log-search')?.value||'').toLowerCase();
+  const filter=document.getElementById('log-filter')?.value||'all';
+  const filtered=logs.filter(l=>{
+    if(filter!=='all'&&l.type!==filter)return false;
+    if(search&&!l.name.toLowerCase().includes(search)&&!l.username.toLowerCase().includes(search)&&!l.agentId.toLowerCase().includes(search))return false;
+    return true;
+  });
+  const cont=document.getElementById('log-list');if(!cont)return;
+  if(!filtered.length){cont.innerHTML='<div style="padding:2rem;text-align:center;font-size:13px;color:var(--muted)">No log entries found.</div>';return;}
+  cont.innerHTML=filtered.map(l=>`
+    <div class="log-entry">
+      <div style="width:64px"><span class="${l.type==='login'?'pill-in':'pill-out'}">${l.type==='login'?'LOGIN':'LOGOUT'}</span></div>
+      <div style="width:130px;font-weight:500;color:var(--text2)">${l.name}</div>
+      <div style="flex:1;font-family:'DM Mono',monospace;color:var(--muted)">${fmtPKT(l.time)} PKT</div>
+      <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);width:90px">${l.agentId}</div>
+      <div><span class="badge ${l.role==='admin'?'b-admin':'b-agent'}">${l.role}</span></div>
+    </div>`).join('');
+}
+function clearLogs(){if(!confirm('Clear all logs? This cannot be undone.'))return;DB.set('pd_logs',[]);updateLogBadge();renderLogs();}
+
+/* ═══════════════════════════════════════════════
+   USERS
+═══════════════════════════════════════════════ */
+let eidx=-1;
+function renderUsers(){
+  const users=DB.get('pd_users')||[];
+  const appts=DB.get('pd_appts')||[];
+  document.getElementById('utbody').innerHTML=users.map((u,i)=>{
+    const c=countForAgent(u.agentId,appts);
+    return`<tr>
+      <td><strong>${u.name}</strong></td>
+      <td style="font-family:'DM Mono',monospace;font-size:12px">${u.username}</td>
+      <td><span class="tag">${u.agentId}</span></td>
+      <td><span class="badge ${u.role==='admin'?'b-admin':'b-agent'}">${u.role}</span></td>
+      <td><span class="badge ${u.status==='blocked'?'b-blocked':u.status==='disabled'?'b-disabled':'b-agent'}">${u.status==='blocked'?'⛔ Blocked':u.status==='disabled'?'Disabled':'Active'}</span>
+        <span style="font-size:11px;color:var(--muted);margin-left:6px">${c.total} appts</span></td>
+      <td><div style="display:flex;gap:5px;flex-wrap:wrap">
+        <button class="btn btn-sm" onclick="openEdit(${i})">Edit</button>
+        <button class="btn btn-sm btn-blue" onclick="openPw('${u.username}','${u.name}')">Password</button>
+        ${u.username!==cu.username?`
+          ${u.status==='blocked'?`<button class="btn btn-sm" onclick="setStatus('${u.username}','active')" style="color:var(--accent)">Unblock</button>`:
+          `<button class="btn btn-sm btn-warn" onclick="confirmAction('${u.username}','block')">Block</button>`}
+          <button class="btn btn-sm btn-d" onclick="delUser(${i})">Delete</button>
+        `:`<span style="font-size:11px;color:var(--muted);padding:4px 6px">You</span>`}
+      </div></td></tr>`;}).join('');
+}
+function openCreate(){eidx=-1;document.getElementById('m-title').textContent='Create new agent';document.getElementById('m-sbtn').textContent='Create agent';document.getElementById('m-err').style.display='none';['m-nm','m-us','m-id','m-pw'].forEach(id=>document.getElementById(id).value='');document.getElementById('m-rl').value='agent';document.getElementById('m-pw').placeholder='Min 6 characters';document.getElementById('m-user').classList.add('open');}
+function openEdit(i){eidx=i;const u=(DB.get('pd_users')||[])[i];document.getElementById('m-title').textContent='Edit agent';document.getElementById('m-sbtn').textContent='Save changes';document.getElementById('m-err').style.display='none';document.getElementById('m-nm').value=u.name;document.getElementById('m-us').value=u.username;document.getElementById('m-id').value=u.agentId;document.getElementById('m-pw').value='';document.getElementById('m-pw').placeholder='Leave blank to keep';document.getElementById('m-rl').value=u.role;document.getElementById('m-user').classList.add('open');}
+function saveUser(){
+  const err=document.getElementById('m-err');
+  const nm=document.getElementById('m-nm').value.trim(),us=document.getElementById('m-us').value.trim().toLowerCase(),id=document.getElementById('m-id').value.trim(),pw=document.getElementById('m-pw').value,rl=document.getElementById('m-rl').value;
+  if(!nm||!us||!id){err.textContent='Name, username and Agent ID are required.';err.style.display='block';return;}
+  if(eidx===-1&&pw.length<6){err.textContent='Password must be at least 6 characters.';err.style.display='block';return;}
+  const users=DB.get('pd_users')||[];
+  if(eidx===-1){if(users.find(u=>u.username===us)){err.textContent='Username already exists.';err.style.display='block';return;}users.push({name:nm,username:us,password:pw,agentId:id,role:rl,status:'active'});}
+  else{const u=users[eidx];u.name=nm;u.username=us;u.agentId=id;u.role=rl;if(pw.length>=6)u.password=pw;}
+  DB.set('pd_users',users);document.getElementById('m-user').classList.remove('open');renderUsers();
+}
+function delUser(i){const users=DB.get('pd_users')||[];if(users[i].username===cu.username)return;if(!confirm('Delete "'+users[i].name+'"?'))return;users.splice(i,1);DB.set('pd_users',users);renderUsers();}
+
+/* ═══════════════════════════════════════════════
+   PASSWORD
+═══════════════════════════════════════════════ */
+function openPw(username,name){
+  document.getElementById('pw-tgt').value=username;
+  document.getElementById('pw-tgt-name').textContent=name||username;
+  ['pw-n','pw-c'].forEach(id=>document.getElementById(id).value='');
+  ['pw-err','pw-ok'].forEach(id=>document.getElementById(id).style.display='none');
+  document.getElementById('m-pwm').classList.add('open');
+}
+function closePwModal(){document.getElementById('m-pwm').classList.remove('open');}
+function savePw(){
+  const err=document.getElementById('pw-err'),ok=document.getElementById('pw-ok');
+  const np=document.getElementById('pw-n').value,cp=document.getElementById('pw-c').value;
+  err.style.display='none';ok.style.display='none';
+  if(np.length<6){err.textContent='Min 6 characters.';err.style.display='block';return;}
+  if(np!==cp){err.textContent='Passwords do not match.';err.style.display='block';return;}
+  const users=DB.get('pd_users')||[];
+  const u=users.find(x=>x.username===document.getElementById('pw-tgt').value);
+  if(u){u.password=np;DB.set('pd_users',users);}
+  ok.textContent='✅ Password updated!';ok.style.display='block';
+  setTimeout(closePwModal,1500);
+}
+
+/* ═══════════════════════════════════════════════
+   SETTINGS
+═══════════════════════════════════════════════ */
+function saveSettings(){const c=DB.get('pd_cfg')||{};c.url=document.getElementById('s-url').value.trim();DB.set('pd_cfg',c);const ok=document.getElementById('s-ok');ok.style.display='block';setTimeout(()=>ok.style.display='none',2000);}
+function renderSvcList(){
+  const svcs=DB.get('pd_svcs')||[];
+  document.getElementById('svclist').innerHTML=svcs.map((s,i)=>`
+    <div class="svc-row">
+      <span class="svc-nm">${s.name}</span>
+      <input type="number" value="${s.price}" style="width:82px;padding:5px 9px;background:var(--surface2);border:1px solid var(--border2);border-radius:7px;color:var(--text);font-family:'DM Mono',monospace;font-size:13px;outline:none" onchange="updSvcPrice(${i},this.value)">
+      <button class="btn btn-sm btn-d" onclick="remSvc(${i})">Remove</button>
+    </div>`).join('');
+}
+function updSvcPrice(i,v){const s=DB.get('pd_svcs')||[];s[i].price=parseFloat(v)||0;DB.set('pd_svcs',s);}
+function remSvc(i){const s=DB.get('pd_svcs')||[];s.splice(i,1);DB.set('pd_svcs',s);renderSvcList();}
+function addSvcSettings(){const nm=document.getElementById('ns-nm').value.trim(),pr=parseFloat(document.getElementById('ns-pr').value);if(!nm||isNaN(pr))return;const s=DB.get('pd_svcs')||[];s.push({name:nm,price:pr});DB.set('pd_svcs',s);document.getElementById('ns-nm').value='';document.getElementById('ns-pr').value='';renderSvcList();}
+
+/* ═══════════════════════════════════════════════
+   AUTO REFRESH
+═══════════════════════════════════════════════ */
+setInterval(()=>{
+  if(!cu||cu.role!=='admin')return;
+  if(document.getElementById('page-monitor').classList.contains('active'))renderMonitor();
+  if(document.getElementById('page-stats').classList.contains('active'))renderStats();
+},15000);
+
+checkSession();
+</script>
+</body>
+</html>
